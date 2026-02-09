@@ -1,0 +1,8 @@
+{
+  "polymarket_leader_address": "0x9eb1f9602242b2218f55275fbab16e7eb239fc21",
+  "telegram_bot_token": "8311069218:AAENVGvW64qQSn5JWTjDwSUE78GiMl1wWTc",
+  "telegram_chat_id": 6113871895,
+  "poll_interval_seconds": 15,
+  "taker_only": false,
+  "min_trade_size": 0.0
+}
