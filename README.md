@@ -54,3 +54,68 @@ python polymarket_copy_bot.py
 - 如果 Polymarket 的 API 或返回字段有更新，可能需要根据最新文档稍作调整。  
 - 如果需要支持多地址、多策略、Web 控制面板等，可以在此脚本基础上进一步扩展。
 
+## Polymarket 累计入金查询
+
+`polymarket_deposit.py` 用于查询 Polygon 钱包收到的 USDC.e 和原生 USDC，并按本项目的排除地址规则计算累计外部入金。
+
+### 计算口径
+
+```text
+累计入金 = 收到的 USDC.e + USDC - 排除来源的转入
+```
+
+脚本只统计转入，不扣除提现。因此，结果是“过滤后的累计转入”，不是净入金，也不代表 Polymarket 或 Nansen 官方认证的充值金额。
+
+脚本会：
+
+- 查询 USDC.e 和原生 USDC 的 ERC-20 转入。
+- 固定查询截止区块，避免分页期间链上数据变化。
+- 读取全部分页，不会在达到金额阈值后提前停止。
+- 使用 `Decimal` 计算金额。
+- 按 `uniqueId` 去除重复记录。
+- 排除 CTF Exchange、Conditional Tokens、Neg Risk、奖励、USDC 兑换池及本地规则中的其他来源。
+- 查询不完整时返回失败，不把部分金额或零值当作完整结果。
+
+### 环境要求
+
+- Python 3.9 或更高版本。
+- 支持 `alchemy_getAssetTransfers` 的 Polygon Alchemy RPC。
+- 脚本只使用 Python 标准库，无需安装额外依赖。
+
+在 PowerShell 中设置 RPC：
+
+```powershell
+$env:POLYGON_RPC_URL = 'https://polygon-mainnet.g.alchemy.com/v2/你的KEY'
+```
+
+不要把真实 RPC Key 写进代码或提交到 GitHub。
+
+### 运行方法
+
+```powershell
+python .\polymarket_deposit.py 0x你的钱包地址
+```
+
+也可以指定一个尚不存在的结果目录：
+
+```powershell
+python .\polymarket_deposit.py 0x你的钱包地址 --output .\results\wallet-check-001
+```
+
+如果不指定 `--output`，脚本会在 `results` 下创建带钱包地址和 UTC 时间的目录。已有目录不会被覆盖。
+
+### 输出文件
+
+- `summary.json`：查询状态、累计入金、排除总额、截止区块、分页数和证据文件哈希。
+- `transfers.jsonl`：每笔转入、币种、来源、金额、是否计入、排除原因和交易哈希。
+- `pages.jsonl`：各分页的请求参数和 RPC 返回，用于复查。
+
+只有当 `summary.json` 中的 `status` 为 `complete` 时，`gross_deposit` 才是完整结果。状态为 `incomplete` 时，不应使用任何部分金额。
+
+### 已知限制
+
+- 排除名单是本项目规则，不是官方地址分类，可能遗漏或误排来源。
+- 只覆盖 Polygon 上的 USDC.e 和原生 USDC。
+- 不会自动识别或合并 owner 地址与 proxy 地址。
+- 不扣除提现，因此不能直接用于计算净本金、PnL 或 ROI。
+- RPC 查询可能消耗 Alchemy 额度。
