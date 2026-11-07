@@ -17,7 +17,7 @@ TOKENS = {
     "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": "USDC.e",
     "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359": "USDC",
 }
-# Exact address list from Desktop/polymarket/����Ǯ/rujin.py.
+# Exact address list from the original local rujin.py.
 # Labels are local rules, not verified official classifications.
 EXCLUDED = dict(zip([
     "0x4bfb41d5b3570defd03c39a9a4d8de6bd8b8982e",
